@@ -1,12 +1,11 @@
 const express = require("express");
 const axios = require("axios");
-const oauth = require("axios-oauth-client");
-const { response } = require("express");
-const qs = require("querystring");
 require("dotenv").config();
+const bodyParser = require("body-parser");
 
 const app = express();
 const port = process.env.PORT;
+const jsonParser = bodyParser.json();
 
 const URL = "https://api-gateway.kyivstar.ua/idp/oauth2/token";
 
@@ -31,7 +30,7 @@ async function getToken() {
 }
 
 // Function that send SMS with kyivstar api
-async function sendSMS(token) {
+async function sendSMS(token, data) {
   try {
     let res = await axios({
       method: "POST",
@@ -50,12 +49,11 @@ async function sendSMS(token) {
   }
 }
 
-app.post("/sms", (req, res) => {
-  console.log(req.body);
+app.post("/sms", jsonParser, (req, res) => {
   getToken().then((response) => {
-    sendSMS(response.access_token).then((smsResponse) => {
+    sendSMS(response.access_token, req.body).then((smsResponse) => {
       res.status(200).json(smsResponse);
-    })
+    });
   });
 });
 
