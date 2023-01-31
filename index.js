@@ -8,11 +8,9 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT;
 
-const data = { grant_type: "client_credentials" };
-
-console.log(process.env.CLIENT_ID)
 const URL = "https://api-gateway.kyivstar.ua/idp/oauth2/token";
 
+// Function that get Token from kyivstar oauth2
 async function getToken() {
   try {
     let res = await axios({
@@ -22,12 +20,9 @@ async function getToken() {
         username: process.env.CLIENT_ID,
         password: process.env.CLIENT_SECRET,
       },
-      data: qs.stringify(data),
+      data: { grant_type: "client_credentials" },
       url: URL,
     });
-    if (res.status == 200) {
-      console.log(res.status);
-    }
 
     return res.data;
   } catch (err) {
@@ -35,31 +30,34 @@ async function getToken() {
   }
 }
 
-// axios({
-//   method: "POST",
-//   url: " https://api-gateway.kyivstar.ua/sandbox/rest/v1beta/sms",
-//   headers: { Authorization: "Bearer " + token },
-//   data: {
-//     from: "messagedesk",
-//     to: "38 (097) 637-39-38",
-//     text: "Нове заповнення форми!",
-//   },
-// })
+// Function that send SMS with kyivstar api
+async function sendSMS(token) {
+  try {
+    let res = await axios({
+      method: "POST",
+      url: "https://api-gateway.kyivstar.ua/mock/rest/v1beta/sms",
+      headers: { Authorization: "Bearer " + token },
+      data: {
+        from: "messagedesk",
+        to: "38 (067) 000-02-00",
+        text: "Нове заповнення форми!",
+      },
+    });
 
-
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+    return res.data;
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 app.post("/sms", (req, res) => {
-  getToken()
-  .then(response => {
-    console.log(response)
-    res.status(200).json(response)
-  })
+  getToken().then((response) => {
+    sendSMS(response.access_token).then((smsResponse) => {
+      res.status(200).json(smsResponse);
+    })
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`dent-in backend listening on port ${port}`);
 });
