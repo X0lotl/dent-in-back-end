@@ -49,10 +49,37 @@ async function sendSMS(token, data) {
   }
 }
 
+async function checkSMSStatus(token, smsID) {
+  console.log(smsID);
+  try {
+    let res = await axios({
+      method: "GET",
+      url: `https://api-gateway.kyivstar.ua/mock/rest/v1beta/sms/${smsID}`,
+      headers: { Authorization: "Bearer " + token },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error(err.code);
+  }
+}
+
 app.post("/sms", jsonParser, (req, res) => {
   getToken().then((response) => {
-    sendSMS(response.access_token, req.body).then((smsResponse) => {
-      res.status(200).json(smsResponse);
+    const token = response.access_token;
+
+    sendSMS(token, req.body).then((smsResponse) => {
+      const smsId = smsResponse.msgId;
+
+      checkSMSStatus(token, smsId).then((smsStatusResponse) => {
+        const smsStatus = smsStatusResponse.status;
+
+        if (smsStatus === 'delivered') {
+          res.status(200);
+        }
+
+        res.json(smsStatusResponse);
+      });
     });
   });
 });
