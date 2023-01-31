@@ -51,6 +51,7 @@ async function sendSMS(token) {
 }
 
 app.post("/sms", (req, res) => {
+  console.log(req.body);
   getToken().then((response) => {
     sendSMS(response.access_token).then((smsResponse) => {
       res.status(200).json(smsResponse);
