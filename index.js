@@ -14,13 +14,13 @@ async function getToken() {
   try {
     let res = await axios({
       method: "POST",
+      url: process.env.TOKEN_URL,
       headers: { "content-type": "application/x-www-form-urlencoded" },
       auth: {
         username: process.env.CLIENT_ID,
         password: process.env.CLIENT_SECRET,
       },
       data: { grant_type: "client_credentials" },
-      url: URL,
     });
 
     return res.data;
@@ -34,7 +34,7 @@ async function sendSMS(token, data) {
   try {
     let res = await axios({
       method: "POST",
-      url: "https://api-gateway.kyivstar.ua/mock/rest/v1beta/sms",
+      url: process.env.API_URL,
       headers: { Authorization: "Bearer " + token },
       data: {
         from: "messagedesk",
@@ -54,13 +54,13 @@ async function checkSMSStatus(token, smsID) {
   try {
     let res = await axios({
       method: "GET",
-      url: `https://api-gateway.kyivstar.ua/mock/rest/v1beta/sms/${smsID}`,
+      url: `${process.env.API_URL}/${smsID}`,
       headers: { Authorization: "Bearer " + token },
     });
 
     return res.data;
   } catch (err) {
-    console.error(err.code);
+    console.error(err);
   }
 }
 
@@ -70,16 +70,17 @@ app.post("/sms", jsonParser, (req, res) => {
 
     sendSMS(token, req.body).then((smsResponse) => {
       const smsId = smsResponse.msgId;
+      setTimeout(() => {
+        checkSMSStatus(token, smsId).then((smsStatusResponse) => {
+          const smsStatus = smsStatusResponse.status;
 
-      checkSMSStatus(token, smsId).then((smsStatusResponse) => {
-        const smsStatus = smsStatusResponse.status;
+          if (smsStatus === "delivered") {
+            res.status(200);
+          }
 
-        if (smsStatus === 'delivered') {
-          res.status(200);
-        }
-
-        res.json(smsStatusResponse);
-      });
+          res.json(smsStatusResponse);
+        });
+      }, 1000);
     });
   });
 });
