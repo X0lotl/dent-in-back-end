@@ -34,6 +34,7 @@ async function getToken() {
 // Function that send SMS with kyivstar api
 async function sendSMS(token, data) {
   try {
+    console.log(data);
     let res = await axios({
       method: "POST",
       url: process.env.API_URL,
