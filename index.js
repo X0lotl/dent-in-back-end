@@ -1,6 +1,6 @@
 const express = require("express");
 const axios = require("axios");
-const cors = require('cors')
+const cors = require("cors");
 require("dotenv").config();
 const bodyParser = require("body-parser");
 
@@ -41,7 +41,7 @@ async function sendSMS(token, data) {
       data: {
         from: "messagedesk",
         to: process.env.PHONE_NUMBER,
-        text: "Нове заповнення форми!",
+        text: `Нове заповнення форми.\nІмʼя: ${data.name}\nНомер телефону: ${data.phone}\nEmail:${data.email}\nComment:${data.comment}`,
       },
     });
 
@@ -83,7 +83,7 @@ app.post("/sms", jsonParser, (req, res) => {
             res.json(smsStatusResponse);
           } catch (err) {
             res.status(err.code);
-            res.json(err)
+            res.json(err);
           }
         });
       }, 1000);
