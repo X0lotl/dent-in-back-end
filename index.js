@@ -1,9 +1,11 @@
 const express = require("express");
 const axios = require("axios");
+const cors = require('cors')
 require("dotenv").config();
 const bodyParser = require("body-parser");
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT;
 const jsonParser = bodyParser.json();
 
