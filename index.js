@@ -38,7 +38,7 @@ async function sendSMS(token, data) {
       headers: { Authorization: "Bearer " + token },
       data: {
         from: "messagedesk",
-        to: "38 (067) 000-02-00",
+        to: process.env.PHONE_NUMBER,
         text: "Нове заповнення форми!",
       },
     });
@@ -50,7 +50,6 @@ async function sendSMS(token, data) {
 }
 
 async function checkSMSStatus(token, smsID) {
-  console.log(smsID);
   try {
     let res = await axios({
       method: "GET",
@@ -72,13 +71,18 @@ app.post("/sms", jsonParser, (req, res) => {
       const smsId = smsResponse.msgId;
       setTimeout(() => {
         checkSMSStatus(token, smsId).then((smsStatusResponse) => {
-          const smsStatus = smsStatusResponse.status;
+          try {
+            const smsStatus = smsStatusResponse.status;
 
-          if (smsStatus === "delivered") {
-            res.status(200);
+            if (smsStatus === "delivered") {
+              res.status(200);
+            }
+
+            res.json(smsStatusResponse);
+          } catch (err) {
+            res.status(err.code);
+            res.json(err)
           }
-
-          res.json(smsStatusResponse);
         });
       }, 1000);
     });
