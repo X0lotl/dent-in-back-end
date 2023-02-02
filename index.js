@@ -40,9 +40,9 @@ async function sendSMS(token, data) {
       url: process.env.API_URL,
       headers: { Authorization: "Bearer " + token },
       data: {
-        from: "messagedesk",
+        from: "dent-in",
         to: process.env.PHONE_NUMBER,
-        text: `Нове заповнення форми.\nІмʼя: ${data.name}\nНомер телефону: ${data.phone}\nEmail:${data.email}\nComment:${data.comment}`,
+        text: `Нове заповнення форми.\nІмʼя: ${data.name}\nНомер телефону: ${data.phone}\nEmail: ${data.email}\nКоментар: ${data.comment}`,
       },
     });
 
