@@ -62,32 +62,30 @@ async function checkSMSStatus(token, smsID) {
 
     return res.data;
   } catch (err) {
-    console.error(err);
+    console.error(err.code);
   }
 }
 
 app.post("/sms", jsonParser, (req, res) => {
   getToken().then((response) => {
     const token = response.access_token;
-
     sendSMS(token, req.body).then((smsResponse) => {
-      const smsId = smsResponse.msgId;
-      setTimeout(() => {
-        checkSMSStatus(token, smsId).then((smsStatusResponse) => {
-          try {
-            const smsStatus = smsStatusResponse.status;
+      console.log(smsResponse);
+      
+      checkSMSStatus(token, smsResponse.msgId).then((smsStatusResponse) => {
+        try {
+          const smsStatus = smsStatusResponse.status;
 
-            if (smsStatus === "delivered") {
-              res.status(200);
-            }
-
-            res.json(smsStatusResponse);
-          } catch (err) {
-            res.status(err.code);
-            res.json(err);
+          if (smsStatus === "delivered") {
+            res.status(200);
           }
-        });
-      }, 1000);
+
+          res.json(smsStatusResponse);
+        } catch (err) {
+          res.status(err.code);
+          res.json(err);
+        }
+      });
     });
   });
 });
