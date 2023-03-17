@@ -100,7 +100,7 @@ server.post("/sms", (request, reply) => {
     .catch((err) => console.log(err));
 });
 
-server.listen({ port: PORT as number }, (err, address) => {
+server.listen({ port: PORT as number, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
