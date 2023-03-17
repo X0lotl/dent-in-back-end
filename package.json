@@ -5,9 +5,7 @@
   "author": "Aiden Bai",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "dev": "nodemon",
-    "start": "node src/server.js"
+    "dev": "nodemon"
   },
   "dependencies": {
     "@fastify/cors": "^8.2.1",
