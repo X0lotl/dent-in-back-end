@@ -1,23 +1,51 @@
-import fastify from 'fastify'
-import { request } from 'http';
-require('dotenv').config();
+import fastify from "fastify";
+import axios from "axios";
 
-const server = fastify()
+require("dotenv").config();
+
+const server = fastify();
 
 const PORT = process.env.PORT || 3001;
+const BASE_URL = process.env.BASE_URL as string;
+const BASIC_TOKEN = process.env.BASIC_TOKEN as string;
+const USERNAME = process.env.USERNAME as string;
+const PASSWORD = process.env.PASSWORD as string;
 
-server.get('/ping', async (request, reply) => {
-  return 'pong\n';
-})
+const getToken = async () => {
+  axios
+    .post(`${BASE_URL}/uaa/oauth/token`, null, {
+      params: {
+        'grant_type': 'password',
+        'username': USERNAME,
+        'password': PASSWORD,
+      },
+      headers: {
+        authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    })
+    .then((response) => {
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
 
-server.get('/', async (request, reply) => {
-  return request.body;
-} )
+server.get("/ping", async (request, reply) => {
+  return "pong\n";
+});
 
-server.listen({ port: PORT as number}, (err, address) => {
+server.post("/sms", async (request, reply) => {
+  // console.log(request.body);
+
+  getToken()
+
+  return "Ura";
+});
+
+server.listen({ port: PORT as number }, (err, address) => {
   if (err) {
-    console.error(err)
-    process.exit(1)
+    console.error(err);
+    process.exit(1);
   }
-  console.log(`Server listening at ${address}`)
-})
+  console.log(`Server listening at ${address}`);
+});
