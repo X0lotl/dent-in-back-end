@@ -3,6 +3,7 @@ import axios from "axios";
 import { Token } from "./models/token-model";
 import { Appointment } from "./models/appointment-model";
 import cors from "@fastify/cors";
+import { SMS } from "./models/sms-model";
 
 require("dotenv").config();
 
@@ -17,6 +18,7 @@ const USERNAME = process.env.USERNAME as string;
 const PASSWORD = process.env.PASSWORD as string;
 const PHONE_NUMBER = process.env.PHONE_NUMBER as string;
 const DISTRIBUTION_ID = process.env.DESTRIBUTION_ID as string;
+const HOST = process.env.HOST as string
 
 const getToken = async () => {
   try {
@@ -72,11 +74,11 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
           },
         ],
       },
-    });
+    }) as SMS;
 
-    console.log(response);
+    console.log(response.data);
 
-    return response;
+    return response.data;
   } catch (err:any) {
     console.error(err.code);
   }
@@ -100,7 +102,7 @@ server.post("/sms", (request, reply) => {
     .catch((err) => console.log(err));
 });
 
-server.listen({ port: PORT as number, host: '0.0.0.0' }, (err, address) => {
+server.listen({ port: PORT as number, host: HOST }, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
