@@ -1,39 +1,23 @@
-import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
-import { Server, IncomingMessage, ServerResponse } from 'http'
+import fastify from 'fastify'
+import { request } from 'http';
+require('dotenv').config();
 
-const server: FastifyInstance = Fastify({})
+const server = fastify()
 
-const opts: RouteShorthandOptions = {
-  schema: {
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          pong: {
-            type: 'string'
-          }
-        }
-      }
-    }
-  }
-}
+const PORT = process.env.PORT || 3001;
 
-server.get('/', (req, res) => {
-  console.log(req);
-  res.send(1);
+server.get('/ping', async (request, reply) => {
+  return 'pong\n';
 })
 
-server.get('/ping', opts, (request, reply) => {
-  reply.send({ pong: 'it worked!' })
-})
+server.get('/', async (request, reply) => {
+  return request.body;
+} )
 
-server.listen({ port: 3000 }, (err) => {
+server.listen({ port: PORT as number}, (err, address) => {
   if (err) {
-    server.log.error(err)
+    console.error(err)
     process.exit(1)
   }
-
-  const address = server.server.address()
-  const port = typeof address === 'string' ? address : address?.port
-
+  console.log(`Server listening at ${address}`)
 })

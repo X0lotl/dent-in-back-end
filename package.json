@@ -6,9 +6,11 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "start": "node src/server.js"
   },
   "dependencies": {
+    "@fastify/env": "^4.2.0",
     "axios": "^1.2.6",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
