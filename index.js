@@ -11,7 +11,6 @@ const jsonParser = bodyParser.json();
 
 const URL = "https://api-gateway.kyivstar.ua/idp/oauth2/token";
 
-// Function that get Token from kyivstar oauth2
 async function getToken() {
   try {
     let res = await axios({
@@ -31,7 +30,6 @@ async function getToken() {
   }
 }
 
-// Function that send SMS with kyivstar api
 async function sendSMS(token, data) {
   try {
     console.log(data);
