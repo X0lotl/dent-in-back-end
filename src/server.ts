@@ -18,8 +18,8 @@ const BASE_URL = process.env.BASE_URL as string;
 const BASIC_TOKEN = process.env.BASIC_TOKEN as string;
 const USERNAME = process.env.USERNAME as string;
 const PASSWORD = process.env.PASSWORD as string;
-const PHONE_NUMBER = process.env.PHONE_NUMBER as string;
-const DISTRIBUTION_ID = process.env.DESTRIBUTION_ID as string;
+const PHONE_NUMBER = process.env.PHONE_NUMBER || 380504408392;
+const DISTRIBUTION_ID = process.env.DESTRIBUTION_ID || 4574415;
 const HOST = process.env.HOST as string
 
 const getToken = async () => {
@@ -66,7 +66,7 @@ const checkSMSStatus = async(accessToken: string, sendSMSResoponse: SendSMSRespo
 
 const sendSMS = async (accessToken: string, appointment: Appointment) => {
   try {
-    const response = (await axios({
+    const response = await axios({
       method: "POST",
       url: `${BASE_URL}/communication-event/api/communicationManagement/v2/communicationMessage/send`,
       headers: {
@@ -79,8 +79,8 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
         type: "SMS",
         receiver: [
           {
-            id: PHONE_NUMBER,
-            phoneNumber: PHONE_NUMBER,
+            id: PHONE_NUMBER as number,
+            phoneNumber: PHONE_NUMBER as string,
           },
         ],
         sender: {
@@ -89,7 +89,7 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
         characteristic: [
           {
             name: "DISTRIBUTION.ID",
-            value: DISTRIBUTION_ID,
+            value: DISTRIBUTION_ID as number,
           },
           {
             name: "VALIDITY.PERIOD",
@@ -97,13 +97,13 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
           },
         ],
       },
-    })) as SendSMSResponse;
+    }) as SendSMSResponse;
 
     console.log(response.data);
 
     return response;
-  } catch (err:any) {
-    console.error(err.code);
+  } catch (err) {
+    console.error("Sending sms error: " + err);
   }
 };
 
@@ -118,19 +118,11 @@ server.post("/sms", (request, reply) => {
 
       sendSMS(token?.access_token as string, data)
         .then((response) => {
-          if (response) {
-          checkSMSStatus(token?.access_token as string, response)
-          .then((smsStatus) => {
-            if (smsStatus?.status === "DELIVERED" || smsStatus?.status === "ACCEPTED" ) {
-              reply.send(smsStatus)
-            } else {
-              reply.status(500).send(smsStatus);
-            }
-          });
+          if(response?.data[0].status == "ACCEPTED") {
+            reply.status(200).send(response);
           } else {
             reply.status(500).send(response);
           }
-          reply.send(response);
         })
         .catch((err) => console.log(err));
     })
