@@ -1,4 +1,4 @@
-export interface SMS {
+export interface SendSMSResponse {
     data: {
        id: string,
        status: string

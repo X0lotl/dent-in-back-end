@@ -3,7 +3,9 @@ import axios from "axios";
 import { Token } from "./models/token-model";
 import { Appointment } from "./models/appointment-model";
 import cors from "@fastify/cors";
-import { SMS } from "./models/sms-model";
+import { SendSMSResponse } from "./models/sms-model";
+import {SMSStatus} from "./models/sms-status-model";
+import { access } from "fs";
 
 require("dotenv").config();
 
@@ -41,22 +43,43 @@ const getToken = async () => {
   }
 };
 
-const sendSMS = async (accessToken: string, appointment: Appointment) => {
+const checkSMSStatus = async(accessToken: string, sendSMSResoponse: SendSMSResponse) => {
   try {
     const response = await axios({
+      method: "GET",
+      url: `${BASE_URL}/communication-event/api/communicationManagement/v2/communicationMessage/status`,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "*/*",
+        Authorization: `bearer ${accessToken}`,
+      },
+      params: {
+        "messageId": sendSMSResoponse.data[0].id
+      }
+    }) as SMSStatus
+
+    return response;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+const sendSMS = async (accessToken: string, appointment: Appointment) => {
+  try {
+    const response = (await axios({
       method: "POST",
       url: `${BASE_URL}/communication-event/api/communicationManagement/v2/communicationMessage/send`,
       headers: {
         "Content-Type": "application/json",
-        Accept: '*/*',
-        Authorization: `Bearer ${accessToken}`,
+        Accept: "*/*",
+        Authorization: `bearer ${accessToken}`,
       },
       data: {
         content: `Нове заповнення форми.\nІмʼя: ${appointment.name}\nНомер телефону: ${appointment.phone}\nEmail: ${appointment.email}\nКоментар: ${appointment.comment}`,
         type: "SMS",
         receiver: [
           {
-            id: 0,
+            id: PHONE_NUMBER,
             phoneNumber: PHONE_NUMBER,
           },
         ],
@@ -66,7 +89,7 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
         characteristic: [
           {
             name: "DISTRIBUTION.ID",
-            value: "Форма 2",
+            value: DISTRIBUTION_ID,
           },
           {
             name: "VALIDITY.PERIOD",
@@ -74,11 +97,11 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
           },
         ],
       },
-    }) as SMS;
+    })) as SendSMSResponse;
 
     console.log(response.data);
 
-    return response.data;
+    return response;
   } catch (err:any) {
     console.error(err.code);
   }
@@ -95,6 +118,18 @@ server.post("/sms", (request, reply) => {
 
       sendSMS(token?.access_token as string, data)
         .then((response) => {
+          if (response) {
+          checkSMSStatus(token?.access_token as string, response)
+          .then((smsStatus) => {
+            if (smsStatus?.status === "DELIVERED" || smsStatus?.status === "ACCEPTED" ) {
+              reply.send(smsStatus)
+            } else {
+              reply.status(500).send(smsStatus);
+            }
+          });
+          } else {
+            reply.status(500).send(response);
+          }
           reply.send(response);
         })
         .catch((err) => console.log(err));
