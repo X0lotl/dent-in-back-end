@@ -4,8 +4,7 @@ import { Token } from "./models/token-model";
 import { Appointment } from "./models/appointment-model";
 import cors from "@fastify/cors";
 import { SendSMSResponse } from "./models/sms-model";
-import {SMSStatus} from "./models/sms-status-model";
-import { access } from "fs";
+import { SMSStatus } from "./models/sms-status-model";
 
 require("dotenv").config();
 
@@ -20,7 +19,7 @@ const USERNAME = process.env.USERNAME as string;
 const PASSWORD = process.env.PASSWORD as string;
 const PHONE_NUMBER = process.env.PHONE_NUMBER || 380504408392;
 const DISTRIBUTION_ID = process.env.DESTRIBUTION_ID || 4574415;
-const HOST = process.env.HOST as string
+const HOST = process.env.HOST as string;
 
 const getToken = async () => {
   try {
@@ -43,9 +42,12 @@ const getToken = async () => {
   }
 };
 
-const checkSMSStatus = async(accessToken: string, sendSMSResoponse: SendSMSResponse) => {
+const checkSMSStatus = async (
+  accessToken: string,
+  sendSMSResoponse: SendSMSResponse
+) => {
   try {
-    const response = await axios({
+    const response = (await axios({
       method: "GET",
       url: `${BASE_URL}/communication-event/api/communicationManagement/v2/communicationMessage/status`,
       headers: {
@@ -54,19 +56,19 @@ const checkSMSStatus = async(accessToken: string, sendSMSResoponse: SendSMSRespo
         Authorization: `bearer ${accessToken}`,
       },
       params: {
-        "messageId": sendSMSResoponse.data[0].id
-      }
-    }) as SMSStatus
+        messageId: sendSMSResoponse.data[0].id,
+      },
+    })) as SMSStatus;
 
     return response;
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 const sendSMS = async (accessToken: string, appointment: Appointment) => {
   try {
-    const response = await axios({
+    const response = (await axios({
       method: "POST",
       url: `${BASE_URL}/communication-event/api/communicationManagement/v2/communicationMessage/send`,
       headers: {
@@ -97,9 +99,7 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
           },
         ],
       },
-    }) as SendSMSResponse;
-
-    console.log(response.data);
+    })) as SendSMSResponse;
 
     return response;
   } catch (err) {
@@ -108,7 +108,7 @@ const sendSMS = async (accessToken: string, appointment: Appointment) => {
 };
 
 server.get("/ping", async (request, reply) => {
-  return "pong\n";
+    return "pong\n";
 });
 
 server.post("/sms", (request, reply) => {
@@ -118,10 +118,11 @@ server.post("/sms", (request, reply) => {
 
       sendSMS(token?.access_token as string, data)
         .then((response) => {
-          if(response?.data[0].status == "ACCEPTED") {
-            reply.status(200).send(response);
+          if (response?.data[0].status == "ACCEPTED") {
+            reply.status(200).send("SMS_SENDED");
           } else {
-            reply.status(500).send(response);
+            console.log("ERROR 1")
+            reply.status(500).send("ERROR_WITH_SMS_RESPONSE");
           }
         })
         .catch((err) => console.log(err));
